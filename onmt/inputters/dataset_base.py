@@ -14,7 +14,7 @@ BOS_WORD = '<s>'
 EOS_WORD = '</s>'
 
 
-class DatasetBase(torchtext.data.Dataset):
+class DatasetBase(torchtext.legacy.data.Dataset):
     """
     A dataset basically supports iteration over all the examples
     it contains. We currently have 3 datasets inheriting this base
@@ -119,7 +119,7 @@ class DatasetBase(torchtext.data.Dataset):
         Returns:
             the created `Example` object.
         """
-        ex = torchtext.data.Example()
+        ex = torchtext.legacy.data.Example()
         for (name, field), val in zip(fields, data):
             if field is not None:
                 setattr(ex, name, field.preprocess(val))

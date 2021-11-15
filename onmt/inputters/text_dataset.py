@@ -212,21 +212,21 @@ class TextDataset(DatasetBase):
         """
         fields = {}
 
-        fields["src"] = torchtext.data.Field(
+        fields["src"] = torchtext.legacy.data.Field(
             pad_token=PAD_WORD,
             include_lengths=True)
 
         for j in range(n_src_features):
             fields["src_feat_" + str(j)] = \
-                torchtext.data.Field(pad_token=PAD_WORD)
+                torchtext.legacy.data.Field(pad_token=PAD_WORD)
 
-        fields["tgt"] = torchtext.data.Field(
+        fields["tgt"] = torchtext.legacy.data.Field(
             init_token=BOS_WORD, eos_token=EOS_WORD,
             pad_token=PAD_WORD)
 
         for j in range(n_tgt_features):
             fields["tgt_feat_" + str(j)] = \
-                torchtext.data.Field(init_token=BOS_WORD, eos_token=EOS_WORD,
+                torchtext.legacy.data.Field(init_token=BOS_WORD, eos_token=EOS_WORD,
                                      pad_token=PAD_WORD)
 
         def make_src(data, vocab):
@@ -239,7 +239,7 @@ class TextDataset(DatasetBase):
                     alignment[j, i, t] = 1
             return alignment
 
-        fields["src_map"] = torchtext.data.Field(
+        fields["src_map"] = torchtext.legacy.data.Field(
             use_vocab=False, dtype=torch.float,
             postprocessing=make_src, sequential=False)
 
@@ -251,11 +251,11 @@ class TextDataset(DatasetBase):
                 alignment[:sent.size(0), i] = sent
             return alignment
 
-        fields["alignment"] = torchtext.data.Field(
+        fields["alignment"] = torchtext.legacy.data.Field(
             use_vocab=False, dtype=torch.long,
             postprocessing=make_tgt, sequential=False)
 
-        fields["indices"] = torchtext.data.Field(
+        fields["indices"] = torchtext.legacy.data.Field(
             use_vocab=False, dtype=torch.long,
             sequential=False)
 
@@ -286,7 +286,7 @@ class TextDataset(DatasetBase):
     def _dynamic_dict(self, examples_iter):
         for example in examples_iter:
             src = example["src"]
-            src_vocab = torchtext.vocab.Vocab(Counter(src),
+            src_vocab = torchtext.legacy.vocab.Voclegacy.ab(Counter(src),
                                               specials=[UNK_WORD, PAD_WORD])
             self.src_vocabs.append(src_vocab)
             # Mapping source tokens to indices in the dynamic dict.

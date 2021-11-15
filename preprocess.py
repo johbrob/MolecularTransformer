@@ -11,6 +11,7 @@ import gc
 import os
 import codecs
 import torch
+from pathlib import Path
 from onmt.utils.logging import init_logger, logger
 
 import onmt.inputters as inputters
@@ -30,14 +31,14 @@ def check_existing_pt_files(opt):
             sys.exit(1)
 
 
-def parse_args():
+def parse_args(dataset: Path):
     """ Parsing arguments """
     parser = argparse.ArgumentParser(
         description='preprocess.py',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     opts.add_md_help_argument(parser)
-    opts.preprocess_opts(parser)
+    opts.preprocess_opts(parser, dataset)
 
     opt = parser.parse_args()
     torch.manual_seed(opt.seed)
@@ -202,7 +203,9 @@ def build_save_vocab(train_dataset, fields, opt):
 
 
 def main():
-    opt = parse_args()
+    dataset = Path("data/MIT_mixed_augm")
+    #dataset = Path("")
+    opt = parse_args(dataset)
 
     if (opt.max_shard_size > 0):
         raise AssertionError("-max_shard_size is deprecated, please use \

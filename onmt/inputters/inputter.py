@@ -9,8 +9,8 @@ from collections import Counter, defaultdict, OrderedDict
 from itertools import count
 
 import torch
-import torchtext.data
-import torchtext.vocab
+import torchtext.legacy.data
+import torchtext.legacy.vocab
 
 from onmt.inputters.dataset_base import UNK_WORD, PAD_WORD, BOS_WORD, EOS_WORD
 from onmt.inputters.text_dataset import TextDataset
@@ -30,8 +30,8 @@ def _setstate(self, state):
     self.stoi = defaultdict(lambda: 0, self.stoi)
 
 
-torchtext.vocab.Vocab.__getstate__ = _getstate
-torchtext.vocab.Vocab.__setstate__ = _setstate
+torchtext.legacy.vocab.Vocab.__getstate__ = _getstate
+torchtext.legacy.vocab.Vocab.__setstate__ = _setstate
 
 
 def get_fields(data_type, n_src_features, n_tgt_features):
@@ -96,7 +96,7 @@ def merge_vocabs(vocabs, vocab_size=None):
         `torchtext.vocab.Vocab`
     """
     merged = sum([vocab.freqs for vocab in vocabs], Counter())
-    return torchtext.vocab.Vocab(merged,
+    return torchtext.legacy.vocab.Vocab(merged,
                                  specials=[UNK_WORD, PAD_WORD,
                                            BOS_WORD, EOS_WORD],
                                  max_size=vocab_size)
@@ -395,15 +395,15 @@ def load_vocabulary(vocabulary_path, tag=""):
     return vocabulary
 
 
-class OrderedIterator(torchtext.data.Iterator):
+class OrderedIterator(torchtext.legacy.data.Iterator):
     """ Ordered Iterator Class """
 
     def create_batches(self):
         """ Create batches """
         if self.train:
             def _pool(data, random_shuffler):
-                for p in torchtext.data.batch(data, self.batch_size * 100):
-                    p_batch = torchtext.data.batch(
+                for p in torchtext.legacy.data.batch(data, self.batch_size * 100):
+                    p_batch = torchtext.legacy.data.batch(
                         sorted(p, key=self.sort_key),
                         self.batch_size, self.batch_size_fn)
                     for b in random_shuffler(list(p_batch)):
@@ -412,7 +412,7 @@ class OrderedIterator(torchtext.data.Iterator):
             self.batches = _pool(self.data(), self.random_shuffler)
         else:
             self.batches = []
-            for b in torchtext.data.batch(self.data(), self.batch_size,
+            for b in torchtext.legacy.data.batch(self.data(), self.batch_size,
                                           self.batch_size_fn):
                 self.batches.append(sorted(b, key=self.sort_key))
 
