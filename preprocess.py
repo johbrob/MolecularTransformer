@@ -203,8 +203,7 @@ def build_save_vocab(train_dataset, fields, opt):
 
 
 def main():
-    dataset = Path("data/MIT_mixed_augm")
-    #dataset = Path("")
+    dataset = Path("data/MIT_mixed_augm_small")
     opt = parse_args(dataset)
 
     if (opt.max_shard_size > 0):

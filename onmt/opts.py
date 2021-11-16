@@ -18,17 +18,17 @@ def model_opts(parser):
                        help='Word embedding size for src.')
     group.add_argument('-tgt_word_vec_size', type=int, default=500,
                        help='Word embedding size for tgt.')
-    group.add_argument('-word_vec_size', type=int, default=-1,
+    group.add_argument('-word_vec_size', type=int, default=256, #default=-1,
                        help='Word embedding size for src and tgt.')
 
     group.add_argument('-share_decoder_embeddings', action='store_true',
                        help="""Use a shared weight matrix for the input and
                        output word  embeddings in the decoder.""")
-    group.add_argument('-share_embeddings', action='store_true',
+    group.add_argument('-share_embeddings', default=True, #action='store_true',
                        help="""Share the word embeddings between encoder
                        and decoder. Need to use shared dictionary for this
                        option.""")
-    group.add_argument('-position_encoding', action='store_true',
+    group.add_argument('-position_encoding', default=True, #action='store_true',
                        help="""Use a sin to mark relative words positions.
                        Necessary for non-RNN style models.
                        """)
@@ -54,24 +54,24 @@ def model_opts(parser):
                        the system to incorporate non-text inputs.
                        Options are [text|img|audio].""")
 
-    group.add_argument('-encoder_type', type=str, default='rnn',
+    group.add_argument('-encoder_type', type=str, default='transformer', #default='rnn',
                        choices=['rnn', 'brnn', 'mean', 'transformer', 'cnn'],
                        help="""Type of encoder layer to use. Non-RNN layers
                        are experimental. Options are
                        [rnn|brnn|mean|transformer|cnn].""")
-    group.add_argument('-decoder_type', type=str, default='rnn',
+    group.add_argument('-decoder_type', type=str, default='transformer', #default='rnn',
                        choices=['rnn', 'transformer', 'cnn'],
                        help="""Type of decoder layer to use. Non-RNN layers
                        are experimental. Options are
                        [rnn|transformer|cnn].""")
 
-    group.add_argument('-layers', type=int, default=-1,
+    group.add_argument('-layers', type=int, default=4, #default=-1,
                        help='Number of layers in enc/dec.')
     group.add_argument('-enc_layers', type=int, default=2,
                        help='Number of layers in the encoder')
     group.add_argument('-dec_layers', type=int, default=2,
                        help='Number of layers in the decoder')
-    group.add_argument('-rnn_size', type=int, default=-1,
+    group.add_argument('-rnn_size', type=int, default=256, #default=-1,
                        help="""Size of rnn hidden states. Overwrites
                        enc_rnn_size and dec_rnn_size""")
     group.add_argument('-enc_rnn_size', type=int, default=500,
@@ -151,26 +151,33 @@ def model_opts(parser):
 
 def preprocess_opts(parser, dataset: Path):
     """ Pre-procesing options """
-    
+
+
+    train_src = str(dataset / Path("src-train.txt"))
+    train_tgt = str(dataset / Path("tgt-train.txt"))
+    valid_src = str(dataset / Path("src-val.txt"))
+    valid_tgt = str(dataset / Path("tgt-val.txt"))
+    save_data = str(dataset / dataset.name)
+
     # Data options
     group = parser.add_argument_group('Data')
     group.add_argument('-data_type', default="text",
                        help="""Type of the source input.
                        Options are [text|img].""")
 
-    group.add_argument('-train_src', default=str(dataset / Path("src-train.txt")), #required=True,
+    group.add_argument('-train_src', default=train_src, #required=True,
                        help="Path to the training source data")
-    group.add_argument('-train_tgt', default=str(dataset / Path("tgt-train.txt")), #required=True,
+    group.add_argument('-train_tgt', default=train_tgt, #required=True,
                        help="Path to the training target data")
-    group.add_argument('-valid_src', default=str(dataset / Path("src-val.txt")), #required=True,
+    group.add_argument('-valid_src', default=valid_src, #required=True,
                        help="Path to the validation source data")
-    group.add_argument('-valid_tgt', default=str(dataset / Path("tgt-val.txt")), #required=True,
+    group.add_argument('-valid_tgt', default=valid_tgt, #required=True,
                        help="Path to the validation target data")
 
     group.add_argument('-src_dir', default="",
                        help="Source directory for image or audio files.")
 
-    group.add_argument('-save_data', default=str(dataset / dataset.name), #required=True,
+    group.add_argument('-save_data', default=save_data, #required=True,
                        help="Output file for the prepared data")
 
     group.add_argument('-max_shard_size', type=int, default=0,
@@ -206,7 +213,7 @@ def preprocess_opts(parser, dataset: Path):
 
     group.add_argument('-dynamic_dict', action='store_true', default=True,
                        help="Create dynamic dictionaries")
-    group.add_argument('-share_vocab', action='store_true',
+    group.add_argument('-share_vocab', action='store_true', default=True,
                        help="Share source and target vocabulary")
 
     # Truncation options, for text corpus
@@ -252,11 +259,11 @@ def preprocess_opts(parser, dataset: Path):
                        model faster and smaller""")
 
 
-def train_opts(parser):
+def train_opts(parser, dataset):
     """ Training and saving options """
 
     group = parser.add_argument_group('General')
-    group.add_argument('-data', required=True,
+    group.add_argument('-data', default=str(dataset), #required=True,
                        help="""Path prefix to the ".train.pt" and
                        ".valid.pt" file path from preprocess.py""")
 
@@ -265,15 +272,16 @@ def train_opts(parser):
                        <save_model>_N.pt where N is the number
                        of steps""")
 
-    group.add_argument('-save_checkpoint_steps', type=int, default=5000,
+    group.add_argument('-save_checkpoint_steps', type=int, default=10000, #default=5000,
                        help="""Save a checkpoint every X steps""")
-    group.add_argument('-keep_checkpoint', type=int, default=-1,
+    group.add_argument('-keep_checkpoint', type=int, default=20, #default=-1,
                        help="""Keep X checkpoints (negative: keep all)""")
 
     # GPU
     group.add_argument('-gpuid', default=[], nargs='+', type=int,
                        help="Deprecated see world_size and gpu_ranks.")
-    group.add_argument('-gpu_ranks', default=[], nargs='+', type=int,
+    group.add_argument('-gpu_ranks', default=[], #default=[],
+                       nargs='+', type=int,
                        help="list of ranks of each process.")
     group.add_argument('-world_size', default=1, type=int,
                        help="total number of distributed processes.")
@@ -286,17 +294,17 @@ def train_opts(parser):
     group.add_argument('-master_port', default=10000, type=int,
                        help="Port of master for torch.distributed training.")
 
-    group.add_argument('-seed', type=int, default=-1,
+    group.add_argument('-seed', type=int, default=42,
                        help="""Random seed used for the experiments
                        reproducibility.""")
 
     # Init options
     group = parser.add_argument_group('Initialization')
-    group.add_argument('-param_init', type=float, default=0.1,
+    group.add_argument('-param_init', type=float, default=0, #default=0.1,
                        help="""Parameters are initialized over uniform distribution
                        with support (-param_init, param_init).
                        Use 0 to not use initialization""")
-    group.add_argument('-param_init_glorot', action='store_true',
+    group.add_argument('-param_init_glorot', default=True, #action='store_true',
                        help="""Init parameters with xavier_uniform.
                        Required for transfomer.""")
 
@@ -325,14 +333,14 @@ def train_opts(parser):
     group = parser.add_argument_group('Optimization- Type')
     group.add_argument('-batch_size', type=int, default=64,
                        help='Maximum batch size for training')
-    group.add_argument('-batch_type', default='sents',
+    group.add_argument('-batch_type', default="tokens", #default='sents',
                        choices=["sents", "tokens"],
                        help="""Batch grouping for batch_size. Standard
                                is sents. Tokens will do dynamic batching""")
-    group.add_argument('-normalization', default='sents',
+    group.add_argument('-normalization', default="tokens", #default='sents',
                        choices=["sents", "tokens"],
                        help='Normalization method of the gradient.')
-    group.add_argument('-accum_count', type=int, default=1,
+    group.add_argument('-accum_count', type=int, default=4, #default=1,
                        help="""Accumulate gradient this many times.
                        Approximately equivalent to updating
                        batch_size * accum_count batches at once.
@@ -345,11 +353,11 @@ def train_opts(parser):
                        help="""Maximum batches of words in a sequence to run
                         the generator on in parallel. Higher is faster, but
                         uses more memory.""")
-    group.add_argument('-train_steps', type=int, default=100000,
+    group.add_argument('-train_steps', type=int, default=500000, #default=100000,
                        help='Number of training steps')
     group.add_argument('-epochs', type=int, default=0,
                        help='Deprecated epochs see train_steps')
-    group.add_argument('-optim', default='sgd',
+    group.add_argument('-optim', default='adam', #default='sgd',
                        choices=['sgd', 'adagrad', 'adadelta', 'adam',
                                 'sparseadam'],
                        help="""Optimization method.""")
@@ -358,11 +366,11 @@ def train_opts(parser):
                        Mirrors the initial_accumulator_value option
                        in the tensorflow adagrad (use 0.1 for their default).
                        """)
-    group.add_argument('-max_grad_norm', type=float, default=5,
+    group.add_argument('-max_grad_norm', type=float, default=0, #default=5,
                        help="""If the norm of the gradient vector exceeds this,
                        renormalize it to have the norm equal to
                        max_grad_norm""")
-    group.add_argument('-dropout', type=float, default=0.3,
+    group.add_argument('-dropout', type=float, default=0.1, #default=0.3,
                        help="Dropout probability; applied in LSTM stacks.")
     group.add_argument('-truncated_decoder', type=int, default=0,
                        help="""Truncated bptt.""")
@@ -372,7 +380,7 @@ def train_opts(parser):
                        the literature, seemingly giving good results,
                        so we would discourage changing this value from
                        the default without due consideration.""")
-    group.add_argument('-adam_beta2', type=float, default=0.999,
+    group.add_argument('-adam_beta2', type=float, default=0.998, #default=0.999,
                        help="""The beta2 parameter used by Adam.
                        Typically a value of 0.999 is recommended, as this is
                        the value suggested by the original paper describing
@@ -393,7 +401,7 @@ def train_opts(parser):
                        https://arxiv.org/abs/1512.00567""")
     # learning rate
     group = parser.add_argument_group('Optimization- Rate')
-    group.add_argument('-learning_rate', type=float, default=1.0,
+    group.add_argument('-learning_rate', type=float, default=2, #default=1.0,
                        help="""Starting learning rate.
                        Recommended settings: sgd = 1, adagrad = 0.1,
                        adadelta = 1, adam = 0.001""")
@@ -408,9 +416,9 @@ def train_opts(parser):
     group.add_argument('-decay_steps', type=int, default=10000,
                        help="""Decay every decay_steps""")
 
-    group.add_argument('-decay_method', type=str, default="",
+    group.add_argument('-decay_method', type=str, default='noam', #default="",
                        choices=['noam'], help="Use a custom decay rate.")
-    group.add_argument('-warmup_steps', type=int, default=4000,
+    group.add_argument('-warmup_steps', type=int, default=8000, #default=4000,
                        help="""Number of warmup steps for custom decay.""")
 
     group = parser.add_argument_group('Logging')
@@ -546,7 +554,7 @@ def translate_opts(parser):
                        decoded sentences""")
 
     group = parser.add_argument_group('Efficiency')
-    group.add_argument('-batch_size', type=int, default=30,
+    group.add_argument('-batch_size', type=int, default=4096, #default=30,
                        help='Batch size')
     group.add_argument('-gpu', type=int, default=-1,
                        help="Device to run on")

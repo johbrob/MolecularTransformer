@@ -7,6 +7,7 @@ import argparse
 import os
 import signal
 import torch
+from pathlib import Path
 
 import onmt.opts as opts
 import onmt.utils.distributed
@@ -112,7 +113,10 @@ if __name__ == "__main__":
 
     opts.add_md_help_argument(parser)
     opts.model_opts(parser)
-    opts.train_opts(parser)
+
+    dataset = Path("data/MIT_mixed_augm_small/MIT_mixed_augm_small")
+    small_data_size = True
+    opts.train_opts(parser, dataset)
 
     opt = parser.parse_args()
     main(opt)
