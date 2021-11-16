@@ -74,7 +74,8 @@ def training_opt_postprocessing(opt, device_id):
         torch.backends.cudnn.deterministic = True
 
     if device_id >= 0:
-        torch.cuda.set_device(device_id)
+        #torch.cuda.set_device(device_id)
+        torch.cuda.device = 'cpu'
         if opt.seed > 0:
             # These ensure same initialization in multi gpu mode
             torch.cuda.manual_seed(opt.seed)

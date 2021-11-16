@@ -6,6 +6,7 @@ from itertools import chain
 import io
 import codecs
 import sys
+from tqdm import tqdm
 
 import torch
 import torchtext
@@ -194,7 +195,7 @@ class TextDataset(DatasetBase):
     @staticmethod
     def make_text_iterator_from_file(path):
         with codecs.open(path, "r", "utf-8") as corpus_file:
-            for line in corpus_file:
+            for line in tqdm(corpus_file):
                 yield line
 
     @staticmethod
@@ -286,8 +287,8 @@ class TextDataset(DatasetBase):
     def _dynamic_dict(self, examples_iter):
         for example in examples_iter:
             src = example["src"]
-            src_vocab = torchtext.legacy.vocab.Voclegacy.ab(Counter(src),
-                                              specials=[UNK_WORD, PAD_WORD])
+            src_vocab = torchtext.legacy.vocab.Vocab(Counter(src),
+                                                     specials=[UNK_WORD, PAD_WORD])
             self.src_vocabs.append(src_vocab)
             # Mapping source tokens to indices in the dynamic dict.
             src_map = torch.LongTensor([src_vocab.stoi[w] for w in src])
